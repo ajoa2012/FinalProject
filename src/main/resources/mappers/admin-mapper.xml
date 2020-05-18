@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC 
+"-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="adminMapper">
+	<resultMap id="inquireResultSet" type="Inquire">
+		<id property="iId" column="I_ID"/>
+		<result property="inquirerId" column="INQUIRER_ID"/>
+		<result property="type" column="TYPE"/>
+		<result property="title" column="TITLE"/>
+		<result property="content" column="CONTENT"/>
+		<result property="registDate" column="REGIST_DATE"/>
+		<result property="isAnswer" column="IS_ANSWER"/>
+		<result property="answer" column="ANSWER"/>
+		<result property="reportedId" column="REPORTED_ID"/>
+		<result property="name" column="NAME"/>
+	</resultMap>
+	
+	<!-- member name을 얻기위한 resultSet -->
+	<resultMap id="memberResultSet" type="Member">
+		<id property="mId" column="MID"/>
+		<result property="pwd" column="PWD"/>
+		<result property="name" column="NAME"/>
+		<result property="birthDate" column="BIRTH_DATE"/>
+		<result property="email" column="EMAIL"/>
+		<result property="address" column="ADDRESS"/>
+		<result property="enrollDate" column="ENROLL_DATE"/>
+		<result property="updateDate" column="UPDATE_DATE"/>
+		<result property="userStatus" column="STATUS"/>
+		<result property="introduce" column="INTRODUCE"/>
+		<result property="nickname" column="NICKNAME"/>
+	</resultMap>
+	
+	<!-- 방문기록 -->
+	<resultMap id="visitResultSet" type="Visit">
+		<id property="vId" column="VID"/>
+		<result property="visitorId" column="VISITOR_ID"/>
+		<result property="visitDate" column="VISIT_DATE"/>
+	</resultMap>
+	
+	<select id="selectInquireList" parameterType="Inquire" resultMap="inquireResultSet">
+		SELECT *
+		FROM INQUIRE i
+		JOIN MEMBER m
+		ON m.MID = i.INQUIRER_ID
+		ORDER BY I_ID DESC
+	</select>
+	
+	<select id="selectMemberInquireList" parameterType="Inquire" resultMap="inquireResultSet">
+		SELECT *
+		FROM INQUIRE i
+		JOIN MEMBER m
+		ON m.MID = i.INQUIRER_ID
+		WHERE INQUIRER_ID=#{inquirerId}
+		ORDER BY I_ID DESC
+	</select>
+	
+	<select id="selectInquireOne" parameterType="Inquire" resultMap="inquireResultSet">
+		SELECT *
+		FROM INQUIRE
+		WHERE I_ID = #{iId}
+	</select>
+	
+	<!-- <insert id="insertInquire" parameterType="Inquire">
+		INSERT INTO INQUIRE
+		VALUES(#{iId}, #{inquirerId}, #{type}, #{title}, #{content}, #{registDate},
+			#{isAnswer}, #{answer}, #{reportedId})
+	</insert> -->
+	
+	<insert id="insertInquire" parameterType="Inquire">
+		INSERT INTO INQUIRE
+		VALUES(IID_SEQ.NEXTVAL, #{inquirerId}, #{type}, #{title}, #{content}, DEFAULT, DEFAULT, NULL, #{reportedId})
+	</insert>
+	
+	<delete id="deleteInquire">
+		DELETE FROM INQUIRE
+		WHERE I_ID=#{iId}
+	</delete>
+	
+	<insert id="insertResponse" parameterType="Inquire">
+		UPDATE INQUIRE
+		SET ANSWER=#{answer}, IS_ANSWER='Y'
+		WHERE I_ID=#{iId}
+	</insert>
+	
+	<update id="deleteResponse" parameterType="Inquire">
+		UPDATE INQUIRE
+		SET ANSWER=NULL, IS_ANSWER='N'
+		WHERE I_ID=#{iId}
+	</update>
+	
+	<!-- Log -->
+	<select id="selectLogList" parameterType="Visit" resultMap="visitResultSet">
+		SELECT *
+		FROM VISIT_RECORD
+	</select>
+</mapper>
