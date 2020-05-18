@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC 
+"-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="memberMapper">
+	<resultMap id="memberResultSet" type="Member">
+		<id property="mId" column="MID"/>
+		<result property="pwd" column="PWD"/>
+		<result property="name" column="NAME"/>
+		<result property="birthDate" column="BIRTH_DATE"/>
+		<result property="email" column="EMAIL"/>
+		<result property="address" column="ADDRESS"/>
+		<result property="enrollDate" column="ENROLL_DATE"/>
+		<result property="updateDate" column="UPDATE_DATE"/>
+		<result property="userStatus" column="STATUS"/>
+		<result property="introduce" column="INTRODUCE"/>
+		<result property="nickname" column="NICKNAME"/>
+		<result property="msgStatus" column="MSGSTATUS"/>
+	</resultMap>
+	
+	<resultMap id="visitResultSet" type="Visit">
+		<id property="vId" column="VID"/>
+		<result property="visitorId" column="VISITOR_ID"/>
+		<result property="visitDate" column="VISIT_DATE"/>
+	</resultMap>
+	
+	<select id="selectList" parameterType="Member" resultMap="memberResultSet">
+		SELECT *
+		FROM Member
+		<!-- 관리자 페이지에서 탈퇴한 회원도 볼 수 있도록 하기 위해 WHERE STATUS='Y'는 안 넣음 -->
+	</select>
+	
+	<select id="selectListAll" parameterType="Member" resultMap="memberResultSet">
+		SELECT *
+		FROM Member
+		ORDER BY ENROLL_DATE ASC
+		<!-- 관리자 페이지에서 탈퇴한 회원도 볼 수 있도록 하기 위해 WHERE STATUS='Y'는 안 넣음 -->
+	</select>
+	
+	<update id="updateStatus" parameterType="Member">
+		UPDATE MEMBER
+		<if test='userStatus.equals("Y")'>
+			SET STATUS='N'
+		</if>
+		<if test='userStatus.equals("N")'>
+			SET STATUS='Y'
+		</if>
+		WHERE MID=#{mId}
+	</update>
+	<!-- 아이디 중복체크 -->
+	<select id="idCheck" parameterType="string" resultType="int">
+		select count(*) from member where mid=#{mId}
+	</select>
+	<!-- 아이디 찾기 -->
+	<select id="findMemberId" parameterType="string" resultType="string">
+		select mid from member where email=#{email}
+	</select>
+	<!-- 회원가입 -->
+	<insert id="insertMember" parameterType="Member">
+		INSERT INTO MEMBER
+		VALUES(
+		#{mId}, #{pwd}, #{name}, #{birthDate}, #{email}, 
+		#{address}, sysdate,sysdate,default,'자기소개입력', #{nickname} , default)
+	</insert>
+	<!-- 이메일찾기 -->
+	<select id="findEmail" parameterType="string" resultType="string">
+		select email from member
+		where mid=#{mId}
+	</select>
+	<!-- 비밀번호 변경 -->
+	<update id="changeMemberPwd" parameterType="Member">
+		update Member set PWD=#{pwd} where mid=#{mId}
+	</update>
+	<!-- 로그인 -->
+	<select id="selectMember" parameterType="Member" resultMap="memberResultSet">
+		SELECT *
+		FROM MEMBER
+		WHERE mID=#{mId}
+		AND STATUS='Y'
+	</select>
+	<!-- 프로필 이미지 찾기 -->
+	<select id="selectProfileImg" parameterType="string" resultType="string">
+		select change_name from storage where refer_id=#{mId}
+	</select>
+	<!-- 프로필 업데이트 -->
+	<update id="updateProfile" parameterType="Member">
+		update member set introduce=#{introduce},nickname=#{nickname} where mid=#{mId}
+	</update>
+	<update id="updateProfileImg" parameterType="Member">
+		update storage set CHANGE_NAME=#{profileimg} where REFER_ID=#{mId}
+	</update>
+	<!-- 회원가입 시 디폴트 이미지  -->
+	<insert id="insertProfileImg" parameterType="Member">
+		INSERT INTO storage
+		VALUES(
+		FNO_SEQ.nextval,#{mId},default,'profileimg',default,#{profileimg},default
+		)
+	</insert>
+	<!-- Log -->
+	<insert id="insertVisit" parameterType="Member">
+		INSERT INTO VISIT_RECORD
+		VALUES(VID_SEQ.NEXTVAL, #{mId}, SYSDATE)
+	</insert>
+	<update id="updateMember" parameterType="Member">
+		update member set name = #{name},BIRTH_DATE=#{birthDate},
+		ADDRESS=#{address},UPDATE_DATE=sysdate where MID = #{mId}
+	</update>
+	<select id="getNickname" parameterType="string" resultType="string">
+		select NICKNAME from member where MID=#{fId}
+	</select>
+	
+	<select id="checkEmail" parameterType="string" resultType="int">
+		select Count(*) from Member where EMAIL=#{email}
+	</select>
+	
+	<select id="selectOne" parameterType="Member" resultMap="memberResultSet">
+		SELECT *
+		FROM MEMBER
+		WHERE MID=#{mId}
+	</select>
+	
+	<select id="selectNickname" parameterType="string" resultType="int">
+		select count(*) from member where NICKNAME=#{nickname}
+	</select>
+	
+	<update id="deleteMember" parameterType="string">
+		update Member set STATUS = 'N' where MID = #{mId}
+	</update>
+	
+	<update id="updateMsgStatus" parameterType="string">
+		update Member set MSGSTATUS = 'N' where MID = #{mId}
+	</update>
+	<update id="adminChat">
+		UPDATE MEMBER SET MSGSTATUS = 'Y' WHERE MID = #{fId}
+	</update>
+	
+</mapper>
